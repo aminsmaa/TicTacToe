@@ -1,0 +1,179 @@
+from termcolor2 import colored
+import os
+from random import randint
+import time
+
+
+def show_table(table_list):
+    os.system('cls')
+    row = '|'
+    a, b = 0, 3
+    for i in range(0, 3):
+        for j in range(a, b):
+            if (table_list[j] == 'X'):
+                print(colored(table_list[j], color='red'), end='|')
+            elif (table_list[j] == 'O'):
+                print(colored(table_list[j], color='blue'), end='|')
+            else:
+                print(table_list[j], end='|')
+        print()
+        row = '|'
+        a += 3
+        b += 3
+
+
+def has_any_Won(table_list, player):
+    if table_list[4] == player:
+        if table_list[1] == player and table_list[7] == player: return player
+        if table_list[3] == player and table_list[5] == player: return player
+        if table_list[2] == player and table_list[6] == player: return player
+        if table_list[0] == player and table_list[8] == player: return player
+    elif table_list[0] == player:
+        if table_list[1] == player and table_list[2] == player: return player
+        if table_list[3] == player and table_list[6] == player: return player
+    elif table_list[8] == player:
+        if table_list[5] == player and table_list[2] == player: return player
+        if table_list[7] == player and table_list[6] == player: return player
+    else:
+        return 'N'
+
+
+def bot_move(table_list, xo):
+    if table_list[0] == xo:
+        if table_list[1] == xo and table_list[2] not in ['X', 'O']: return 2
+        if table_list[2] == xo and table_list[1] not in ['X', 'O']: return 1
+        if table_list[3] == xo and table_list[6] not in ['X', 'O']: return 6
+        if table_list[6] == xo and table_list[3] not in ['X', 'O']: return 3
+        if table_list[4] == xo and table_list[8] not in ['X', 'O']: return 8
+        if table_list[8] == xo and table_list[4] not in ['X', 'O']: return 4
+        return 10
+    elif table_list[8] == xo:
+        if table_list[7] == xo and table_list[6] not in ['X', 'O']: return 6
+        if table_list[6] == xo and table_list[7] not in ['X', 'O']: return 7
+        if table_list[5] == xo and table_list[2] not in ['X', 'O']: return 2
+        if table_list[2] == xo and table_list[5] not in ['X', 'O']: return 5
+        if table_list[4] == xo and table_list[0] not in ['X', 'O']: return 0
+        if table_list[0] == xo and table_list[4] not in ['X', 'O']: return 4
+        return 10
+    elif table_list[4] == xo:
+        if table_list[1] == xo and table_list[7] not in ['X', 'O']: return 7
+        if table_list[7] == xo and table_list[1] not in ['X', 'O']: return 1
+        if table_list[3] == xo and table_list[5] not in ['X', 'O']: return 5
+        if table_list[5] == xo and table_list[3] not in ['X', 'O']: return 3
+        if table_list[0] == xo and table_list[8] not in ['X', 'O']: return 8
+        if table_list[8] == xo and table_list[0] not in ['X', 'O']: return 0
+        if table_list[6] == xo and table_list[2] not in ['X', 'O']: return 2
+        if table_list[2] == xo and table_list[6] not in ['X', 'O']: return 6
+        return 10
+    return 10
+
+
+def make_move(model, xo):
+    x_wins = 0
+    o_wins = 0
+    time_play = 3
+    i = 0
+    for i in range(0, time_play):
+        # while i != time_play:
+        print('...')
+        time.sleep(2)
+        table_list = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+        show_table(table_list)
+        print(f'x:{x_wins} - o:{o_wins}')
+        move = ''
+        if xo == 'O':
+            moves = 1
+            limit = 10
+        else:
+            moves = 0
+            limit = 9
+        winner = ''
+
+        while moves != limit:
+            if moves % 2 == 0:
+                turn = 'X'
+                color = 'red'
+            else:
+                turn = 'O'
+                color = 'blue'
+
+            if model == 1 and turn == xo:
+                move = int(input(colored(f'make a move: ', color=color))) - 1
+            elif model == 1:
+                move = bot_move(table_list, xo)
+                if move == 10: move = randint(1, 9) - 1
+            elif model == 2:
+                move = int(input((colored(f'{turn} moves: ', color=color)))) - 1
+
+            while move not in range(0, 10):
+                if (model == 1 and turn == xo) or model == 2:
+                    print('wrong input, try again', end=' ')
+                    move = int(input(colored(f'make a move: ', color=color))) - 1
+                elif model == 1:
+                    print('wrong input, try again', end=' ')
+                    move = bot_move(table_list, xo)
+                    if move == 10: move = randint(1, 9) - 1
+            while (table_list[move] == 'X') or (table_list[move] == 'O'):
+                if (model == 1 and turn == xo) or model == 2:
+                    move = int(input('number has chosen before, Try Again: ')) - 1
+                else:
+                    move = bot_move(table_list, xo)
+                    if move == 10: move = randint(1, 9) - 1
+            table_list[move] = turn
+            show_table(table_list)
+            print(f'x:{x_wins} - o:{o_wins}')
+            if model == 1 and turn == xo:
+                print('robot thinking...')
+                time.sleep(1)
+
+            any_win_happen = has_any_Won(table_list, player=turn)
+            if model == 1 and any_win_happen == xo:
+                print(colored('YOU WIN!', color='green'))
+                if xo == 'X':
+                    x_wins += 1
+                else:
+                    o_wins += 1
+                break
+            elif model == 1 and any_win_happen not in [None, xo, 'N']:
+                print(colored('Robot Wins', color='green'), end=' ')
+                print(colored('YOU LOSE!', color='red'))
+                if xo == 'X':
+                    o_wins += 1
+                else:
+                    x_wins += 1
+                break
+            elif (any_win_happen == 'X') or (any_win_happen == 'O'):
+                print(colored(f'pleyer {any_win_happen} WINS!', color='green'))
+                if any_win_happen == 'X':
+                    x_wins += 1
+                else:
+                    o_wins += 1
+                if x_wins == o_wins:
+                    if x_wins == time_play - 1:
+                        time_play += 1
+                        print(f'game to: {time_play}')
+                        time.sleep(1)
+                break
+            moves += 1
+            i += 1
+            if any_win_happen == 'N' and moves == limit:  print(colored('TIE', color='yellow'))
+            if o_wins == x_wins: time_play += 1
+
+    print(colored('Final Result:', color='yellow'), end='  ')
+    if x_wins > o_wins:
+        print(colored(f'player X WINS!', color='red'))
+    else:
+        print(colored(f'pleyer O WINS!', color='blue'))
+
+
+model = int(input('how do you want to play? \n 1\tsingle\n 2\tmulti: \n'))
+while model not in [1, 2]:
+    model = int(input('wrong input, try again: '))
+
+xo = input('start with \'X\' or \'O\' ? ').upper()
+# xo = xo.upper()
+while xo not in ['X', 'O']:
+    xo = input('wrong input, try again: ')
+    xo = xo.upper()
+
+make_move(model, xo)
